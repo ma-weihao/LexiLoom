@@ -14,6 +14,7 @@ document.getElementById('translateBtn').addEventListener('click', () => {
 
 document.getElementById('editBtn').addEventListener('click', () => {
     console.log('Edit button clicked');
+    document.getElementById('inputArea').classList.remove('hidden');
     document.getElementById('resultArea').classList.add('hidden');
     document.getElementById('inputText').value = '';
 });
@@ -64,6 +65,7 @@ async function fetchTranslation(text) {
 
 function displayDictionaryResult(data) {
     console.log('Rendering dictionary result');
+    document.getElementById('inputArea').classList.add('hidden');
     const result = `
         <h2>${data.word}</h2>
         <p><strong>Pronunciation:</strong> ${data.pronunciation || 'N/A'}</p>
@@ -84,6 +86,7 @@ function displayDictionaryResult(data) {
 
 function displayTranslationResult(data) {
     console.log('Rendering translation result');
+    document.getElementById('inputArea').classList.add('hidden');
     const result = `
         <h2>Translation</h2>
         <p>${data.translationCN}</p>
@@ -110,4 +113,8 @@ function displayError(message) {
     `;
     document.getElementById('resultContent').innerHTML = result;
     document.getElementById('resultArea').classList.remove('hidden');
-} 
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('inputText').focus();
+}); 
