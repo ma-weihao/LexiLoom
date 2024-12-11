@@ -73,16 +73,19 @@ function displayDictionaryResult(data) {
     // Set the title to the word
     document.querySelector('h1').textContent = data.word;
 
-    const result = data.meanings.map((mean, index) => `
-        <div>
-            <p><strong>Definition (EN):</strong> ${mean.definitionEN}</p>
-            <p><strong>Definition (CN):</strong> ${mean.definitionCN}</p>
-            <ul>
-                ${mean.exampleSentences.map(ex => `<li>${ex.sentence} - ${ex.translationCN}</li>`).join('')}
-            </ul>
-        </div>
-        ${index < data.meanings.length - 1 ? '<hr>' : ''}
-    `).join('');
+    const result = `
+        <hr>
+        ${data.meanings.map((mean, index) => `
+            <div>
+                <p><strong>Definition (EN):</strong> ${mean.definitionEN}</p>
+                <p><strong>Definition (CN):</strong> ${mean.definitionCN}</p>
+                <ul>
+                    ${mean.exampleSentences.map(ex => `<li>${ex.sentence} - ${ex.translationCN}</li>`).join('')}
+                </ul>
+            </div>
+            ${index < data.meanings.length - 1 ? '<hr>' : ''}
+        `).join('')}
+    `;
 
     document.getElementById('resultContent').innerHTML = `
         <p><strong>Pronunciation:</strong> ${data.pronunciation || 'N/A'}</p>
