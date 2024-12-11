@@ -17,6 +17,9 @@ document.getElementById('editBtn').addEventListener('click', () => {
     document.getElementById('inputArea').classList.remove('hidden');
     document.getElementById('resultArea').classList.add('hidden');
     document.getElementById('inputText').value = '';
+    
+    // Change the title back to 'LexiLoom'
+    document.querySelector('h1').textContent = 'LexiLoom';
 });
 
 async function fetchDictionary(word) {
@@ -66,8 +69,11 @@ async function fetchTranslation(text) {
 function displayDictionaryResult(data) {
     console.log('Rendering dictionary result');
     document.getElementById('inputArea').classList.add('hidden');
+    
+    // Set the title to the word
+    document.querySelector('h1').textContent = data.word;
+
     const result = `
-        <h2>${data.word}</h2>
         <p><strong>Pronunciation:</strong> ${data.pronunciation || 'N/A'}</p>
         <p><strong>Part of Speech:</strong> ${data.partOfSpeech.join(', ')}</p>
         ${data.meanings.map(mean => `
@@ -117,4 +123,11 @@ function displayError(message) {
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('inputText').focus();
+});
+
+document.getElementById('inputText').addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault(); // Prevents adding a new line
+        document.getElementById('translateBtn').click();
+    }
 }); 
