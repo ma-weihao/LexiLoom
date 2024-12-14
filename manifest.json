@@ -6,6 +6,9 @@
   "permissions": [
     "activeTab"
   ],
+  "host_permissions": [
+    "https://burn.hair/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
