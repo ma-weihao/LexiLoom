@@ -1,0 +1,3 @@
+This is a Chrome extension project that translates English into Simplified Chinese with dictionary support.
+
+Depending on the user's input, the extension will either translate the input into Simplified Chinese or search for the input in the dictionary.

@@ -73,6 +73,48 @@ function displayDictionaryResult(data) {
     // Set the title to the word
     document.querySelector('h1').textContent = data.word;
 
+    // Add speaker icon next to the word
+    document.querySelector('h1').innerHTML = `
+        ${data.word} 
+        <img src="icons/ic_speaker.png" id="speakerIcon" style="cursor: pointer; width: 20px; vertical-align: middle;" />
+    `;
+
+    // Add event listener to the speaker icon
+    document.getElementById('speakerIcon').addEventListener('click', () => {
+        playPronunciation(data.word);
+    });
+
+    // Function to play pronunciation
+    async function playPronunciation(word) {
+        console.log('Fetching pronunciation for word:', word);
+        try {
+            const response = await fetch('https://burn.hair/v1/audio/speech', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer sk-pWTPhl8aeh1lvvM1F8462970E7Aa4c0b8bBa110c8c521c67'
+                },
+                body: JSON.stringify({
+                    model: 'tts-1',
+                    input: word,
+                    voice: 'shimmer'
+                })
+            });
+
+            console.log('Pronunciation API response received');
+
+            // Convert response to a blob
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            const audio = new Audio(audioUrl);
+            audio.play();
+            console.log('Playing pronunciation audio');
+        } catch (error) {
+            console.error('Error fetching pronunciation:', error);
+            displayError('Failed to fetch pronunciation. Please try again later.');
+        }
+    }
+
     const result = `
         <hr>
         ${data.meanings.map((mean, index) => `
