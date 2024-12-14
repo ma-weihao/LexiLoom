@@ -206,12 +206,18 @@ function displayTranslationResult(data) {
 
     const originalText = document.getElementById('inputText').value.trim();
     
+    // Determine whether to show speaker icon based on text length (changed to 500)
+    const showSpeakerIcon = originalText.length <= 500;
+    const speakerIconHtml = showSpeakerIcon 
+        ? `<img src="icons/ic_speaker.png" id="translationSpeakerIcon" style="cursor: pointer; width: 20px; vertical-align: middle;" />`
+        : '';
+    
     // Combine both original text and translation HTML
     const completeHtml = `
         <h2>Original Text</h2>
         <p>
             ${originalText} 
-            <img src="icons/ic_speaker.png" id="translationSpeakerIcon" style="cursor: pointer; width: 20px; vertical-align: middle;" />
+            ${speakerIconHtml}
         </p>
         <h2>Translation</h2>
         <p>${data.translationCN}</p>
@@ -220,19 +226,21 @@ function displayTranslationResult(data) {
     // Set the complete HTML content at once
     document.getElementById('resultContent').innerHTML = completeHtml;
     
-    // Attach event listener after setting complete HTML
-    setTimeout(() => {
-        const translationSpeakerIcon = document.getElementById('translationSpeakerIcon');
-        if (translationSpeakerIcon) {
-            console.log('Translation speaker icon found, attaching event listener');
-            translationSpeakerIcon.onclick = () => {
-                console.log('Translation speaker icon clicked!!!!');
-                playPronunciation(originalText);
-            };
-        } else {
-            console.error('Translation speaker icon not found');
-        }
-    }, 0);
+    // Only attach event listener if speaker icon is shown
+    if (showSpeakerIcon) {
+        setTimeout(() => {
+            const translationSpeakerIcon = document.getElementById('translationSpeakerIcon');
+            if (translationSpeakerIcon) {
+                console.log('Translation speaker icon found, attaching event listener');
+                translationSpeakerIcon.onclick = () => {
+                    console.log('Translation speaker icon clicked!!!!');
+                    playPronunciation(originalText);
+                };
+            } else {
+                console.error('Translation speaker icon not found');
+            }
+        }, 0);
+    }
 
     document.getElementById('resultArea').classList.remove('hidden');
 }
