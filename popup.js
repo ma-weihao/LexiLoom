@@ -1,3 +1,5 @@
+const audioCache = new Map();
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Popup DOM loaded');
     
@@ -91,10 +93,21 @@ async function fetchTranslation(text) {
     }
 }
 
-// Move playPronunciation function outside and make it global
-async function playPronunciation(text) {
-    console.log('Fetching pronunciation for text:', text);
+async function playPronunciation(text, iconId) {
+    console.log('Attempting to play pronunciation for text:', text);
+    
     try {
+        replaceSpeakerWithLoader(iconId);
+        
+        if (audioCache.has(text)) {
+            console.log('Playing cached audio for:', text);
+            const cachedAudio = audioCache.get(text);
+            await cachedAudio.play();
+            return;
+        }
+
+        console.log('No cache found, fetching pronunciation from API for:', text);
+        
         const response = await fetch('https://burn.hair/v1/audio/speech', {
             method: 'POST',
             headers: { 
@@ -108,46 +121,70 @@ async function playPronunciation(text) {
             })
         });
 
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-
         if (!response.ok) {
             const errorText = await response.text();
             console.error('API Error:', errorText);
             throw new Error(`API returned ${response.status}: ${errorText}`);
         }
 
-        console.log('Pronunciation API response received');
         const audioBlob = await response.blob();
-        console.log('Audio blob size:', audioBlob.size);
-        
         const audioUrl = URL.createObjectURL(audioBlob);
-        console.log('Created audio URL:', audioUrl);
-        
         const audio = new Audio(audioUrl);
         
-        audio.addEventListener('loadeddata', () => {
-            console.log('Audio loaded successfully');
-        });
+        for (const [key, value] of audioCache.entries()) {
+            URL.revokeObjectURL(value.src);
+            audioCache.delete(key);
+        }
         
-        audio.addEventListener('play', () => {
-            console.log('Audio started playing');
-        });
+        audioCache.set(text, audio);
         
         audio.addEventListener('error', (e) => {
             console.error('Audio error:', e);
+            audioCache.delete(text);
         });
 
         await audio.play();
-        console.log('Play command issued');
-
-        audio.addEventListener('ended', () => {
-            URL.revokeObjectURL(audioUrl);
-            console.log('Audio finished, URL revoked');
-        });
+        
     } catch (error) {
         console.error('Error in playPronunciation:', error);
         displayError('Failed to fetch pronunciation. Please try again later.');
+    } finally {
+        restoreSpeakerIcon(iconId);
+    }
+}
+
+function replaceSpeakerWithLoader(iconId) {
+    const icon = document.getElementById(iconId);
+    if (icon) {
+        // Create spinner element
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+        spinner.id = `${iconId}-spinner`;
+        
+        // Replace speaker icon with spinner
+        icon.parentNode.replaceChild(spinner, icon);
+    }
+}
+
+function restoreSpeakerIcon(iconId) {
+    const spinner = document.getElementById(`${iconId}-spinner`);
+    if (spinner) {
+        // Create new speaker icon
+        const icon = document.createElement('img');
+        icon.src = "icons/ic_speaker.png";
+        icon.id = iconId;
+        icon.className = 'speaker-icon';
+        
+        // Replace spinner with speaker icon
+        spinner.parentNode.replaceChild(icon, spinner);
+        
+        // Reattach click event listener
+        icon.addEventListener('click', () => {
+            const text = iconId === 'speakerIcon' 
+                ? document.querySelector('h1').textContent.trim() 
+                : document.getElementById('inputText').value.trim();
+            playPronunciation(text, iconId);
+        });
     }
 }
 
@@ -161,7 +198,7 @@ function displayDictionaryResult(data) {
     // Add speaker icon next to the word
     document.querySelector('h1').innerHTML = `
         ${data.word} 
-        <img src="icons/ic_speaker.png" id="speakerIcon" style="cursor: pointer; width: 20px; vertical-align: middle;" />
+        <img src="icons/ic_speaker.png" id="speakerIcon" class="speaker-icon" />
     `;
 
     // Check if the speaker icon exists and attach event listener
@@ -171,7 +208,7 @@ function displayDictionaryResult(data) {
             console.log('Speaker icon found, attaching event listener');
             speakerIcon.addEventListener('click', () => {
                 console.log('Speaker icon clicked');
-                playPronunciation(data.word);
+                playPronunciation(data.word, 'speakerIcon');
             });
         } else {
             console.error('Speaker icon not found');
@@ -209,7 +246,7 @@ function displayTranslationResult(data) {
     // Determine whether to show speaker icon based on text length (changed to 500)
     const showSpeakerIcon = originalText.length <= 500;
     const speakerIconHtml = showSpeakerIcon 
-        ? `<img src="icons/ic_speaker.png" id="translationSpeakerIcon" style="cursor: pointer; width: 20px; vertical-align: middle;" />`
+        ? `<img src="icons/ic_speaker.png" id="translationSpeakerIcon" class="speaker-icon" />`
         : '';
     
     // Combine both original text and translation HTML
@@ -234,7 +271,7 @@ function displayTranslationResult(data) {
                 console.log('Translation speaker icon found, attaching event listener');
                 translationSpeakerIcon.onclick = () => {
                     console.log('Translation speaker icon clicked!!!!');
-                    playPronunciation(originalText);
+                    playPronunciation(originalText, 'translationSpeakerIcon');
                 };
             } else {
                 console.error('Translation speaker icon not found');
