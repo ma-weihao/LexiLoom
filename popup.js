@@ -1,5 +1,25 @@
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM fully loaded and parsed');
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('Popup DOM loaded');
+    
+    try {
+        const result = await chrome.storage.local.get(['selectedText']);
+        console.log('Retrieved from storage:', result);
+        
+        if (result.selectedText) {
+            const inputText = document.getElementById('inputText');
+            inputText.value = result.selectedText;
+            
+            // Clear the storage
+            await chrome.storage.local.remove('selectedText');
+            
+            // Automatically trigger translation
+            document.getElementById('translateBtn').click();
+        }
+    } catch (error) {
+        console.error('Error retrieving selected text:', error);
+    }
+    
+    // Focus the input field
     document.getElementById('inputText').focus();
 });
 

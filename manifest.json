@@ -4,10 +4,22 @@
   "version": "1.0",
   "description": "Translate English into Simplified Chinese with dictionary support.",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "https://burn.hair/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
   ],
   "action": {
     "default_popup": "popup.html",
