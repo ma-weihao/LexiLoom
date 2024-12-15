@@ -112,7 +112,7 @@ async function playPronunciation(text, iconId) {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer sk-pWTPhl8aeh1lvvM1F8462970E7Aa4c0b8bBa110c8c521c67'
+                'Authorization': 'Bearer sk-FVISXJk8qepkNiup0227804f57C04a6883CcB9224055C33f'
             },
             body: JSON.stringify({
                 model: 'tts-1',
