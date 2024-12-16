@@ -12,6 +12,9 @@ function getSelectedText() {
 // Execute this when the extension icon is clicked
 chrome.action.onClicked.addListener(async (tab) => {
   try {
+    // Clear any previously stored text first
+    await chrome.storage.local.remove('selectedText');
+    
     const [result] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       function: getSelectedText,
@@ -29,11 +32,16 @@ chrome.action.onClicked.addListener(async (tab) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'captureSelection') {
     const selectedText = request.text;
-    if (selectedText) {
-      chrome.storage.local.set({ selectedText: selectedText }, () => {
-        sendResponse({ success: true });
-      });
-    }
+    // Only store the selection if it's from the active tab
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs[0].id === sender.tab.id) {
+        if (selectedText) {
+          chrome.storage.local.set({ selectedText: selectedText }, () => {
+            sendResponse({ success: true });
+          });
+        }
+      }
+    });
     return true; // Required for async response
   }
 }); 
