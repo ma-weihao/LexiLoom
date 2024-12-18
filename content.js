@@ -16,6 +16,13 @@ document.addEventListener('mouseup', () => {
 // Clear selection when tab becomes inactive
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    chrome.storage.local.remove('selectedText');
+    try {
+      // Check if chrome API is still available
+      if (chrome.runtime && chrome.runtime.id) {
+        chrome.storage.local.remove('selectedText');
+      }
+    } catch (error) {
+      console.log('Extension context invalidated or chrome API not available');
+    }
   }
 }); 
