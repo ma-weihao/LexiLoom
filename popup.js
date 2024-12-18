@@ -175,16 +175,31 @@ function restoreSpeakerIcon(iconId) {
         icon.id = iconId;
         icon.className = 'speaker-icon';
         
-        // Replace spinner with speaker icon
-        spinner.parentNode.replaceChild(icon, spinner);
-        
-        // Reattach click event listener
-        icon.addEventListener('click', () => {
-            const text = iconId === 'speakerIcon' 
-                ? document.querySelector('h1').textContent.trim() 
-                : document.getElementById('inputText').value.trim();
-            playPronunciation(text, iconId);
-        });
+        // If this is a sentence speaker, get the original text from the parent li element
+        if (iconId.startsWith('sentenceSpeaker_')) {
+            const parentLi = spinner.closest('li');
+            if (parentLi) {
+                // Get the sentence text (everything before the speaker icon and dash)
+                const sentenceText = parentLi.textContent.split('-')[0].trim();
+                icon.setAttribute('data-text', sentenceText);
+                
+                // Replace spinner with speaker icon
+                spinner.parentNode.replaceChild(icon, spinner);
+                
+                // Reattach click event listener for sentence
+                icon.addEventListener('click', (e) => {
+                    const text = e.target.getAttribute('data-text');
+                    playPronunciation(text, iconId);
+                });
+            }
+        } else {
+            // Handle the main word speaker icon case
+            spinner.parentNode.replaceChild(icon, spinner);
+            icon.addEventListener('click', () => {
+                const text = document.querySelector('h1').textContent.trim();
+                playPronunciation(text, iconId);
+            });
+        }
     }
 }
 
@@ -222,7 +237,16 @@ function displayDictionaryResult(data) {
                 <p><strong>Definition (EN):</strong> ${mean.definitionEN}</p>
                 <p><strong>Definition (CN):</strong> ${mean.definitionCN}</p>
                 <ul>
-                    ${mean.exampleSentences.map(ex => `<li>${ex.sentence} - ${ex.translationCN}</li>`).join('')}
+                    ${mean.exampleSentences.map((ex, sentenceIndex) => `
+                        <li>
+                            ${ex.sentence}
+                            <img src="icons/ic_speaker.png" 
+                                 id="sentenceSpeaker_${index}_${sentenceIndex}" 
+                                 class="speaker-icon" 
+                                 data-text="${ex.sentence}"/>
+                            - ${ex.translationCN}
+                        </li>
+                    `).join('')}
                 </ul>
             </div>
             ${index < data.meanings.length - 1 ? '<hr>' : ''}
@@ -234,6 +258,23 @@ function displayDictionaryResult(data) {
         <p><strong>Part of Speech:</strong> ${data.partOfSpeech.join(', ')}</p>
         ${result}
     `;
+
+    // Attach event listeners to all sentence speaker icons
+    setTimeout(() => {
+        data.meanings.forEach((mean, meaningIndex) => {
+            mean.exampleSentences.forEach((_, sentenceIndex) => {
+                const iconId = `sentenceSpeaker_${meaningIndex}_${sentenceIndex}`;
+                const icon = document.getElementById(iconId);
+                if (icon) {
+                    icon.addEventListener('click', (e) => {
+                        const text = e.target.getAttribute('data-text');
+                        playPronunciation(text, iconId);
+                    });
+                }
+            });
+        });
+    }, 0);
+
     document.getElementById('resultArea').classList.remove('hidden');
 }
 
